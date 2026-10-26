@@ -12,16 +12,25 @@ export class AuthService {
   private router = inject(Router);
 
   // Estado reactivo con Signals
-  private currentUserSignal = signal<UserProfileResponse | null>(this.getSavedUser());
+  private readonly tokenSignal = signal<string | null>(this.getStoredToken());
+  private readonly currentUserSignal = signal<UserProfileResponse | null>(this.getSavedUser());
+
   readonly currentUser = this.currentUserSignal.asReadonly();
-  readonly isAuthenticated = computed(() => !!this.getToken());
+  readonly isAuthenticated = computed(() => !!this.tokenSignal());
 
   constructor() {
+    // Sincronizar el perfil en segundo plano sin interrumpir la sesión existente
     if (this.getToken()) {
       this.loadUserProfile().subscribe({
-        error: () => this.logout(),
+        error: (err) => {
+          console.warn('No se pudo refrescar el perfil en segundo plano:', err);
+        },
       });
     }
+  }
+
+  private getStoredToken(): string | null {
+    return localStorage.getItem('access_token');
   }
 
   private getSavedUser(): UserProfileResponse | null {
@@ -34,14 +43,38 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('access_token');
+    return this.tokenSignal() ?? this.getStoredToken();
   }
 
   login(credentials: { email: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/login`, credentials).pipe(
       tap((response) => {
         localStorage.setItem('access_token', response.access_token);
-        this.loadUserProfile().subscribe();
+        this.tokenSignal.set(response.access_token);
+
+        // Guardar de inmediato los datos del usuario que ya vienen en el response de login
+        const user: UserProfileResponse = {
+          id: response.user_id,
+          tenant_id: response.tenant_id,
+          email: response.email,
+          full_name: response.full_name,
+          role: response.role,
+          is_active: true,
+          tenant: {
+            id: response.tenant_id,
+            name: 'Mi Organización',
+            slug: '',
+            plan: 'PRO',
+            is_active: true,
+          },
+        };
+        this.currentUserSignal.set(user);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+
+        // Enriquecer en segundo plano con /me
+        this.loadUserProfile().subscribe({
+          error: (err) => console.warn('Could not load full profile from /me:', err),
+        });
       })
     );
   }
@@ -51,7 +84,29 @@ export class AuthService {
       tap((response) => {
         if (response.access_token) {
           localStorage.setItem('access_token', response.access_token);
-          this.loadUserProfile().subscribe();
+          this.tokenSignal.set(response.access_token);
+
+          const user: UserProfileResponse = {
+            id: response.user_id,
+            tenant_id: response.tenant_id,
+            email: response.email,
+            full_name: response.full_name,
+            role: response.role,
+            is_active: true,
+            tenant: {
+              id: response.tenant_id,
+              name: payload.company_name,
+              slug: payload.slug,
+              plan: 'PRO',
+              is_active: true,
+            },
+          };
+          this.currentUserSignal.set(user);
+          localStorage.setItem('currentUser', JSON.stringify(user));
+
+          this.loadUserProfile().subscribe({
+            error: (err) => console.warn('Could not load full profile from /me:', err),
+          });
         }
       })
     );
@@ -69,7 +124,8 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('currentUser');
+    this.tokenSignal.set(null);
     this.currentUserSignal.set(null);
-    this.router.navigate(['/login']);
+    this.router.navigate(['/auth/login']);
   }
 }

@@ -1,1 +1,117 @@
-<p>deal-create works!</p>
+<div class="page-container">
+  <div class="form-card">
+    <header class="card-header">
+      <h2>Nueva Oportunidad Comercial</h2>
+      <p class="subtitle">Registra un nuevo trato en el embudo de ventas</p>
+    </header>
+
+    @if (errorMessage()) {
+      <div class="alert alert-error">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <form [formRoot]="form" autocomplete="off">
+      <!-- Título de la oportunidad -->
+      <div class="form-group">
+        @let titleField = form.title();
+        @let showTitleError = titleField.touched() && titleField.invalid();
+
+        <label for="title">Título del Trato *</label>
+        <input
+          type="text"
+          id="title"
+          [formField]="form.title"
+          [class.error]="showTitleError"
+          placeholder="Ej. Implementación CRM Enterprise"
+        >
+        @if (showTitleError) {
+          <ul class="error-messages">
+            @for (error of titleField.errors(); track error.kind) {
+              <li>{{ error.message }}</li>
+            }
+          </ul>
+        }
+      </div>
+
+      <div class="form-row">
+        <!-- Monto -->
+        <div class="form-group flex-2">
+          @let amountField = form.amount();
+          @let showAmountError = amountField.touched() && amountField.invalid();
+
+          <label for="amount">Monto *</label>
+          <input
+            type="number"
+            id="amount"
+            step="0.01"
+            [formField]="form.amount"
+            [class.error]="showAmountError"
+            placeholder="0.00"
+          >
+          @if (showAmountError) {
+            <ul class="error-messages">
+              @for (error of amountField.errors(); track error.kind) {
+                <li>{{ error.message }}</li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- Moneda -->
+        <div class="form-group flex-1">
+          <label for="currency">Moneda *</label>
+          <select id="currency" [formField]="form.currency">
+            <option value="USD">USD ($)</option>
+            <option value="MXN">MXN ($)</option>
+            <option value="EUR">EUR (€)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <!-- Embudo -->
+        <div class="form-group flex-1">
+          <label for="pipeline_id">Embudo de Ventas *</label>
+          <select id="pipeline_id" [formField]="form.pipeline_id" (change)="onPipelineChange($event)">
+            @for (pipeline of pipelines(); track pipeline.id) {
+              <option [value]="pipeline.id">{{ pipeline.name }}</option>
+            } @empty {
+              <option value="a0000000-0000-0000-0000-000000000001">Embudo Principal</option>
+            }
+          </select>
+        </div>
+
+        <!-- Etapa inicial -->
+        <div class="form-group flex-1">
+          <label for="stage_id">Etapa Inicial *</label>
+          <select id="stage_id" [formField]="form.stage_id">
+            @for (stage of availableStages(); track stage.id) {
+              <option [value]="stage.id">{{ stage.name }} ({{ stage.win_probability }}%)</option>
+            } @empty {
+              <option value="b0000000-0000-0000-0000-000000000001">Prospección</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Fecha estimada de cierre -->
+      <div class="form-group">
+        <label for="expected_close_date">Fecha Estimada de Cierre</label>
+        <input
+          type="date"
+          id="expected_close_date"
+          [formField]="form.expected_close_date"
+        >
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="form-actions">
+        <a routerLink="/deals" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Guardando trato...' : 'Crear Oportunidad' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

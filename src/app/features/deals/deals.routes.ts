@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../core/auth/permission.guard';
 
 export const DEAL_ROUTES: Routes = [
   {
@@ -8,6 +9,7 @@ export const DEAL_ROUTES: Routes = [
   },
   {
     path: 'new',
+    canActivate: [permissionGuard('deals:create')],
     loadComponent: () =>
       import('./pages/deal-create/deal-create').then(m => m.DealCreate)
   }

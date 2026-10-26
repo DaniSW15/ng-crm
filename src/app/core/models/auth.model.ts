@@ -1,9 +1,11 @@
+export type UserRole = 'ADMIN' | 'DEV' | 'CLIENTE';
+
 export interface User {
   id: string;
   tenant_id: string;
   email: string;
   full_name: string;
-  role: 'ADMIN' | 'SALES_MANAGER' | 'SALES_REP';
+  role: UserRole;
   is_active: boolean;
 }
 
@@ -14,7 +16,7 @@ export interface AuthResponse {
   tenant_id: string;
   email: string;
   full_name: string;
-  role: string;
+  role: UserRole;
 }
 
 export interface UserProfileResponse {
@@ -22,7 +24,7 @@ export interface UserProfileResponse {
   tenant_id: string;
   email: string;
   full_name: string;
-  role: string;
+  role: UserRole;
   is_active: boolean;
   tenant: {
     id: string;

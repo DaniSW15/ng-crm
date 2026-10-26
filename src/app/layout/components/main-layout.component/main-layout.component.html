@@ -1,1 +1,37 @@
-<p>main-layout.component works!</p>
+<div class="layout-wrapper">
+  <header class="navbar">
+    <div class="nav-left">
+      <a routerLink="/deals" class="brand">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-title">CRM Deals</span>
+      </a>
+
+      <nav class="nav-links">
+        <a routerLink="/deals" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
+          Oportunidades
+        </a>
+      </nav>
+    </div>
+
+    <div class="nav-right">
+      @if (currentUser(); as user) {
+        <div class="user-chip">
+          <span class="user-avatar">{{ (user.full_name || user.email).charAt(0).toUpperCase() }}</span>
+          <div class="user-details">
+            <span class="user-name">{{ user.full_name || 'Usuario' }}</span>
+            <span class="user-role">{{ user.role }}</span>
+          </div>
+        </div>
+      }
+
+      <button type="button" class="btn btn-logout" (click)="onLogout()" title="Cerrar sesión">
+        Salir
+      </button>
+    </div>
+  </header>
+
+  <main class="layout-main">
+    <router-outlet />
+  </main>
+</div>
+

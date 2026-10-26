@@ -75,7 +75,7 @@ export class Register {
     const generated = this.toSlug(input.value);
     const currentSlug = this.model().slug;
 
-    // Solo auto-completa si el slug actual está vacío o coincide con el generado previo
+    // Solo auto-completa si el slug actual est á vacío o coincide con el generado previo
     if (!currentSlug || currentSlug === this.toSlug(this.model().company_name)) {
       this.model.update((m) => ({ ...m, slug: generated }));
     }

@@ -1,60 +1,33 @@
 <div class="page-container">
   <header class="page-header">
-    <h1>Oportunidades Comerciales</h1>
-    <a routerLink="new" class="btn btn-primary">+ Nueva Oportunidad</a>
+    <div>
+      <h1>Oportunidades Comerciales</h1>
+      <p class="subtitle">Gestiona y avanza tratos comerciales en el embudo</p>
+    </div>
+    <a *hasPermission="'deals:create'" routerLink="new" class="btn btn-primary">+ Nueva Oportunidad</a>
   </header>
 
   <!-- Estado de carga -->
   @if (loading()) {
-  <div class="loading-state">
-    <p>Cargando oportunidades del CRM...</p>
-  </div>
+    <div class="loading-state">
+      <p>Cargando oportunidades del CRM...</p>
+    </div>
   }
 
   <!-- Alerta de error -->
   @if (errorMessage()) {
-  <div class="alert alert-error">
-    {{ errorMessage() }}
-  </div>
+    <div class="alert alert-error">
+      {{ errorMessage() }}
+    </div>
   }
 
-  <!-- Tabla de oportunidades -->
+  <!-- Presentational Dumb Component con Signal Inputs & Outputs -->
   @if (!loading()) {
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Título</th>
-          <th>Monto</th>
-          <th>Estado</th>
-          <th>Cierre Estimado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (deal of deals(); track deal.id) {
-        <tr>
-          <td class="font-medium">{{ deal.title }}</td>
-          <td>{{ deal.amount | currency:deal.currency:'symbol':'1.2-2' }}</td>
-          <td>
-            <span class="badge" [class]="'badge-' + deal.status.toLowerCase()">
-              {{ deal.status }}
-            </span>
-          </td>
-          <td>{{ deal.expected_close_date ? (deal.expected_close_date | date:'dd/MM/yyyy') : 'N/A' }}</td>
-          <td>
-            <button class="btn btn-sm" (click)="onMoveToNextStage(deal)">Avanzar Etapa</button>
-          </td>
-        </tr>
-        } @empty {
-        <tr>
-          <td colspan="5" class="empty-state">
-            No hay oportunidades comerciales registradas en este momento.
-          </td>
-        </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+    <app-deal-table
+      [deals]="filteredDeals()"
+      [stageNames]="stageNames()"
+      (moveToNext)="onMoveToNextStage($event)"
+      (delete)="onDeleteDeal($event)"
+    />
   }
 </div>
