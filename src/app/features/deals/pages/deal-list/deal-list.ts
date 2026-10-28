@@ -5,6 +5,9 @@ import { Deal, Pipeline } from '../../../../core/models/deal.model';
 import { PermissionService } from '../../../../core/auth/permission.service';
 import { HasPermissionDirective } from '../../../../core/directives/has-permission.directive';
 import { DealTable } from '../../components/deal-table/deal-table';
+import { finalize } from 'rxjs';
+import { apiErrorMessage } from '../../../../core/utils/api-error-message';
+import { findNextDealStage } from '../../domain/deal-stage.policy';
 
 @Component({
   imports: [RouterLink, HasPermissionDirective, DealTable],
@@ -27,9 +30,32 @@ export class DealList implements OnInit {
   readonly pipelines = signal<Pipeline[]>([]);
   readonly loading = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly pipelineError = signal(false);
+  readonly search = signal('');
+  readonly actionMessage = signal<{ text: string; error: boolean } | null>(null);
+  readonly pendingIds = signal<ReadonlySet<string>>(new Set());
+  readonly statusOptions = [
+    { value: '', label: 'Todas' },
+    { value: 'OPEN', label: 'Abiertas' },
+    { value: 'WON', label: 'Ganadas' },
+    { value: 'LOST', label: 'Perdidas' },
+  ];
 
-  // Capacidad de dominio reactiva (Domain Authorization Policy)
-  readonly canDelete = this.permissionService.can('deals:delete');
+  readonly hasFilters = computed(() => !!this.statusFilter() || !!this.search().trim());
+
+  // Angular adapta los datos de la API y consulta una regla TypeScript independiente.
+  readonly nextStages = computed(() => {
+    const map = new Map<string, string>();
+    for (const deal of this.deals()) {
+      const pipeline = this.pipelines().find((p) => p.id === deal.pipeline_id);
+      const nextStage = findNextDealStage(
+        { pipelineId: deal.pipeline_id, stageId: deal.stage_id, status: deal.status },
+        pipeline,
+      );
+      if (nextStage) map.set(deal.id, nextStage.id);
+    }
+    return map;
+  });
 
   // Mapeo reactivo de id de etapa -> nombre de etapa
   readonly stageNames = computed(() => {
@@ -45,25 +71,44 @@ export class DealList implements OnInit {
   // Lista filtrada reactivamente si se pasa un queryParam ?status=...
   readonly filteredDeals = computed(() => {
     const filter = this.statusFilter();
-    if (!filter) return this.deals();
-    return this.deals().filter((deal) => deal.status.toUpperCase() === filter.toUpperCase());
+    const query = this.normalize(this.search().trim());
+    return this.deals().filter(
+      (deal) =>
+        (!filter || deal.status.toUpperCase() === filter.toUpperCase()) &&
+        (!query || this.normalize(deal.title).includes(query)),
+    );
   });
+
+  onSearch(event: Event): void {
+    this.search.set((event.target as HTMLInputElement).value);
+  }
+
+  private normalize(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  }
 
   ngOnInit(): void {
     this.fetchData();
   }
 
   fetchData(): void {
+    if (this.loading()) return;
     this.loading.set(true);
     this.errorMessage.set(null);
+    this.pipelineError.set(false);
+    this.actionMessage.set(null);
 
     // 1. Cargar embudos/etapas
     this.dealService.getPipelines().subscribe({
       next: (pipelines) => {
         this.pipelines.set(pipelines);
       },
-      error: (err) => {
-        console.warn('No se pudieron obtener los embudos:', err);
+      error: () => {
+        this.pipelines.set([]);
+        this.pipelineError.set(true);
       },
     });
 
@@ -74,56 +119,80 @@ export class DealList implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.errorMessage.set('No se pudieron obtener las oportunidades comerciales.');
+        this.errorMessage.set(
+          apiErrorMessage(err, 'No se pudieron cargar las oportunidades. Intenta nuevamente.'),
+        );
         this.loading.set(false);
-        console.error(err);
       },
     });
   }
 
   onMoveToNextStage(deal: Deal): void {
-    const currentPipeline = this.pipelines().find((p) => p.id === deal.pipeline_id) ?? this.pipelines()[0];
-    const currentStage = currentPipeline?.stages.find((s) => s.id === deal.stage_id);
-
-    // Buscar la etapa siguiente según el orden secuencial del embudo
-    const nextStage = currentPipeline?.stages.find((s) => s.order === (currentStage?.order ?? 1) + 1);
-
-    if (!nextStage) {
-      alert('Esta oportunidad ya se encuentra en la última etapa del embudo comercial.');
+    if (!this.permissionService.hasPermission('deals:move_stage') || this.pendingIds().has(deal.id))
       return;
-    }
-
-    this.dealService.moveStage(deal.id, nextStage.id).subscribe({
-      next: (updatedDeal) => {
-        this.deals.update((currentList) =>
-          currentList.map((item) => (item.id === updatedDeal.id ? updatedDeal : item))
-        );
-      },
-      error: (err) => {
-        alert(err.error?.detail || 'Error al mover la etapa de la oportunidad.');
-      },
-    });
+    const nextStageId = this.nextStages().get(deal.id);
+    if (!nextStageId) return;
+    this.setPending(deal.id, true);
+    this.actionMessage.set(null);
+    this.dealService
+      .moveStage(deal.id, nextStageId)
+      .pipe(finalize(() => this.setPending(deal.id, false)))
+      .subscribe({
+        next: (updatedDeal) => {
+          this.deals.update((currentList) =>
+            currentList.map((item) => (item.id === updatedDeal.id ? updatedDeal : item)),
+          );
+          this.actionMessage.set({
+            text: `Se actualizó la etapa de “${updatedDeal.title}”.`,
+            error: false,
+          });
+        },
+        error: (err) => {
+          this.actionMessage.set({
+            text: apiErrorMessage(err, 'No pudimos cambiar la etapa. Intenta nuevamente.'),
+            error: true,
+          });
+        },
+      });
   }
 
   onDeleteDeal(deal: Deal): void {
-    if (!this.permissionService.hasPermission('deals:delete')) {
-      alert('Tu rol actual no tiene autorización para eliminar oportunidades comerciales.');
+    if (!this.permissionService.hasPermission('deals:delete') || this.pendingIds().has(deal.id))
       return;
-    }
 
     if (!confirm(`¿Estás seguro de eliminar la oportunidad "${deal.title}"?`)) {
       return;
     }
 
-    this.dealService.deleteDeal(deal.id).subscribe({
-      next: () => {
-        // Eliminación inmutable del Signal en memoria
-        this.deals.update((currentList) => currentList.filter((item) => item.id !== deal.id));
-      },
-      error: (err) => {
-        alert(err.error?.detail || 'No tienes permisos para eliminar esta oportunidad.');
-      },
+    this.setPending(deal.id, true);
+    this.actionMessage.set(null);
+    this.dealService
+      .deleteDeal(deal.id)
+      .pipe(finalize(() => this.setPending(deal.id, false)))
+      .subscribe({
+        next: () => {
+          // Eliminación inmutable del Signal en memoria
+          this.deals.update((currentList) => currentList.filter((item) => item.id !== deal.id));
+          this.actionMessage.set({
+            text: `Se eliminó la oportunidad “${deal.title}”.`,
+            error: false,
+          });
+        },
+        error: (err) => {
+          this.actionMessage.set({
+            text: apiErrorMessage(err, 'No pudimos eliminar la oportunidad. Intenta nuevamente.'),
+            error: true,
+          });
+        },
+      });
+  }
+
+  private setPending(id: string, pending: boolean): void {
+    this.pendingIds.update((ids) => {
+      const updated = new Set(ids);
+      if (pending) updated.add(id);
+      else updated.delete(id);
+      return updated;
     });
   }
 }
-

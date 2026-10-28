@@ -1,33 +1,130 @@
 <div class="page-container">
   <header class="page-header">
     <div>
-      <h1>Oportunidades Comerciales</h1>
-      <p class="subtitle">Gestiona y avanza tratos comerciales en el embudo</p>
+      <p class="eyebrow">TU ESPACIO DE VENTAS</p>
+      <h1>Oportunidades</h1>
+      <p class="subtitle">Cada conversación es un paso más hacia tu próximo cierre.</p>
     </div>
-    <a *hasPermission="'deals:create'" routerLink="new" class="btn btn-primary">+ Nueva Oportunidad</a>
+    <a *hasPermission="'deals:create'" routerLink="new" class="btn btn-primary"
+      ><span aria-hidden="true">＋</span> Nueva oportunidad</a
+    >
   </header>
 
-  <!-- Estado de carga -->
+  @if (actionMessage(); as message) {
+    <div
+      class="alert"
+      [class.alert-error]="message.error"
+      [class.alert-info]="!message.error"
+      [attr.role]="message.error ? 'alert' : 'status'"
+    >
+      {{ message.text }}
+    </div>
+  }
+
   @if (loading()) {
-    <div class="loading-state">
-      <p>Cargando oportunidades del CRM...</p>
+    <div class="state-card loading-state" role="status">
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Cargando tus oportunidades…</p>
     </div>
-  }
-
-  <!-- Alerta de error -->
-  @if (errorMessage()) {
-    <div class="alert alert-error">
-      {{ errorMessage() }}
+  } @else if (errorMessage()) {
+    <div class="state-card" role="alert">
+      <span class="state-icon" aria-hidden="true">!</span>
+      <h2>No pudimos cargar tus oportunidades</h2>
+      <p>{{ errorMessage() }}</p>
+      <button type="button" class="btn btn-outline" (click)="fetchData()">Reintentar</button>
     </div>
-  }
+  } @else {
+    @if (pipelineError()) {
+      <div class="alert alert-info" role="status">
+        <p>
+          No pudimos cargar las etapas. Puedes consultar tus oportunidades, pero avanzar de etapa no
+          está disponible.
+        </p>
+        <button type="button" class="btn btn-outline btn-sm" (click)="fetchData()">
+          Reintentar
+        </button>
+      </div>
+    }
 
-  <!-- Presentational Dumb Component con Signal Inputs & Outputs -->
-  @if (!loading()) {
-    <app-deal-table
-      [deals]="filteredDeals()"
-      [stageNames]="stageNames()"
-      (moveToNext)="onMoveToNextStage($event)"
-      (delete)="onDeleteDeal($event)"
-    />
+    <section aria-label="Buscar y filtrar oportunidades" class="list-toolbar">
+      <nav class="status-tabs" aria-label="Filtrar por estado">
+        @for (option of statusOptions; track option.value) {
+          <a
+            routerLink="/deals"
+            [queryParams]="{ status: option.value || null }"
+            queryParamsHandling="merge"
+            [class.selected]="(statusFilter() || '').toUpperCase() === option.value"
+            [attr.aria-current]="
+              (statusFilter() || '').toUpperCase() === option.value ? 'true' : null
+            "
+          >
+            {{ option.label }}
+          </a>
+        }
+      </nav>
+      <div class="search-field">
+        <label for="deal-search" class="sr-only">Buscar oportunidades por título</label>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+        >
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="m16 16 4.5 4.5" />
+        </svg>
+        <input
+          id="deal-search"
+          type="search"
+          class="search-input"
+          [value]="search()"
+          (input)="onSearch($event)"
+          placeholder="Buscar oportunidad…"
+        />
+      </div>
+    </section>
+
+    <p class="results-count" role="status">
+      {{ filteredDeals().length }}
+      {{
+        filteredDeals().length === 1 ? 'oportunidad en esta vista' : 'oportunidades en esta vista'
+      }}
+    </p>
+
+    @if (filteredDeals().length) {
+      <app-deal-table
+        [deals]="filteredDeals()"
+        [stageNames]="stageNames()"
+        [nextStages]="nextStages()"
+        [pendingIds]="pendingIds()"
+        (moveToNext)="onMoveToNextStage($event)"
+        (delete)="onDeleteDeal($event)"
+      />
+      <p class="table-hint">En pantallas pequeñas, desliza la tabla para ver más detalles.</p>
+    } @else if (hasFilters()) {
+      <div class="state-card">
+        <span class="state-icon" aria-hidden="true">⌕</span>
+        <h2>No encontramos coincidencias</h2>
+        <p>Prueba con otro título o cambia el estado seleccionado.</p>
+        <a
+          routerLink="/deals"
+          [queryParams]="{ status: null }"
+          queryParamsHandling="merge"
+          (click)="search.set('')"
+          class="btn btn-outline"
+          >Limpiar filtros</a
+        >
+      </div>
+    } @else {
+      <div class="state-card">
+        <span class="state-icon" aria-hidden="true">＋</span>
+        <h2>Aquí empieza tu próxima venta</h2>
+        <p>Aún no hay oportunidades registradas. Crea la primera y empieza a dar seguimiento.</p>
+        <a *hasPermission="'deals:create'" routerLink="new" class="btn btn-primary"
+          >Crear mi primera oportunidad</a
+        >
+      </div>
+    }
   }
 </div>

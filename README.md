@@ -1,5 +1,7 @@
 # NgCrm
 
+Para explorar una regla de negocio independiente de Angular, consulta la [demostración de DDD](docs/ddd-demo.md) y ejecuta `npm run test:domain`.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.5.
 
 ## Development server

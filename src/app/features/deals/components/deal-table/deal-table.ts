@@ -20,9 +20,11 @@ export class DealTable {
   // Signal Inputs: Reactivos e inmutables en la vista
   readonly deals = input.required<Deal[]>();
   readonly stageNames = input.required<Map<string, string>>();
+  readonly nextStages = input.required<Map<string, string>>();
+  readonly pendingIds = input<ReadonlySet<string>>(new Set());
+  readonly statusLabels = { OPEN: 'Abierta', WON: 'Ganada', LOST: 'Perdida' };
 
   // Signal Outputs: Eventos tipados hacia el Smart Component contenedor
   readonly moveToNext = output<Deal>();
   readonly delete = output<Deal>();
 }
-

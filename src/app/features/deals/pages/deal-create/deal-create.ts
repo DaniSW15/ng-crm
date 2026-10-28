@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { DealService } from '../../services/deal.service';
 import { AuthService } from '../../../../core/auth/auth-service';
 import { DealCreateRequest, Pipeline } from '../../../../core/models/deal.model';
+import { apiErrorMessage } from '../../../../core/utils/api-error-message';
 
 export interface DealFormModel {
   title: string;
@@ -30,24 +31,33 @@ export class DealCreate implements OnInit {
   readonly pipelines = signal<Pipeline[]>([]);
   readonly isSubmitting = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly loadingPipelines = signal(true);
+  readonly pipelineError = signal<string | null>(null);
 
   protected readonly model = signal<DealFormModel>({
     title: '',
     amount: 0,
     currency: 'USD',
-    pipeline_id: 'a0000000-0000-0000-0000-000000000001',
-    stage_id: 'b0000000-0000-0000-0000-000000000001',
-    owner_id: this.authService.currentUser()?.id ?? '00000000-0000-0000-0000-000000000002',
-    expected_close_date: new Date().toISOString().split('T')[0],
+    pipeline_id: '',
+    stage_id: '',
+    owner_id: this.authService.currentUser()?.id ?? '',
+    expected_close_date: '',
   });
 
   // Etapas disponibles según el embudo seleccionado
   readonly availableStages = computed(() => {
     const selectedPipelineId = this.model().pipeline_id;
-    const currentPipeline =
-      this.pipelines().find((p) => p.id === selectedPipelineId) ?? this.pipelines()[0];
-    return currentPipeline ? currentPipeline.stages : [];
+    const currentPipeline = this.pipelines().find((p) => p.id === selectedPipelineId);
+    return [...(currentPipeline?.stages ?? [])].sort((a, b) => a.order - b.order);
   });
+
+  readonly canCreate = computed(
+    () =>
+      !this.loadingPipelines() &&
+      !this.pipelineError() &&
+      !!this.authService.currentUser()?.id &&
+      this.availableStages().some((stage) => stage.id === this.model().stage_id),
+  );
 
   protected readonly form = form(
     this.model,
@@ -62,6 +72,7 @@ export class DealCreate implements OnInit {
     {
       submission: {
         action: async () => {
+          if (!this.canCreate()) return;
           this.errorMessage.set(null);
           this.isSubmitting.set(true);
 
@@ -82,36 +93,48 @@ export class DealCreate implements OnInit {
 
             await firstValueFrom(this.dealService.createDeal(payload));
             await this.router.navigate(['/deals']);
-          } catch (error: any) {
-            console.error('Error al crear oportunidad:', error);
+          } catch (error: unknown) {
             this.errorMessage.set(
-              error.error?.detail || 'No se pudo crear la oportunidad. Verifica los datos.'
+              apiErrorMessage(error, 'No se pudo crear la oportunidad. Verifica los datos.'),
             );
           } finally {
             this.isSubmitting.set(false);
           }
         },
       },
-    }
+    },
   );
 
   ngOnInit(): void {
+    this.loadPipelines();
+  }
+
+  loadPipelines(): void {
+    this.loadingPipelines.set(true);
+    this.pipelineError.set(null);
     this.dealService.getPipelines().subscribe({
       next: (pipelines) => {
-        this.pipelines.set(pipelines);
-        if (pipelines.length > 0) {
-          const firstPipeline = pipelines[0];
-          const firstStage = firstPipeline.stages[0];
-
-          this.model.update((m) => ({
-            ...m,
-            pipeline_id: firstPipeline.id,
-            stage_id: firstStage ? firstStage.id : m.stage_id,
-          }));
-        }
+        const activePipelines = pipelines.filter((pipeline) => pipeline.is_active);
+        this.pipelines.set(activePipelines);
+        const selected =
+          activePipelines.find((pipeline) => pipeline.id === this.model().pipeline_id) ??
+          activePipelines.find((pipeline) => pipeline.is_default) ??
+          activePipelines[0];
+        const stages = [...(selected?.stages ?? [])].sort((a, b) => a.order - b.order);
+        this.model.update((m) => ({
+          ...m,
+          pipeline_id: selected?.id ?? '',
+          stage_id: stages.some((stage) => stage.id === m.stage_id)
+            ? m.stage_id
+            : (stages[0]?.id ?? ''),
+        }));
+        this.loadingPipelines.set(false);
       },
       error: (err) => {
-        console.warn('No se pudieron precargar los embudos:', err);
+        this.pipelineError.set(
+          apiErrorMessage(err, 'No pudimos cargar los embudos de ventas. Intenta nuevamente.'),
+        );
+        this.loadingPipelines.set(false);
       },
     });
   }
@@ -120,12 +143,12 @@ export class DealCreate implements OnInit {
     const select = event.target as HTMLSelectElement;
     const pipelineId = select.value;
     const pipeline = this.pipelines().find((p) => p.id === pipelineId);
-    const firstStage = pipeline?.stages[0];
+    const firstStage = [...(pipeline?.stages ?? [])].sort((a, b) => a.order - b.order)[0];
 
     this.model.update((m) => ({
       ...m,
       pipeline_id: pipelineId,
-      stage_id: firstStage ? firstStage.id : m.stage_id,
+      stage_id: firstStage?.id ?? '',
     }));
   }
 }

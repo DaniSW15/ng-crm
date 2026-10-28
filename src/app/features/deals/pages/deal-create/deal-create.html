@@ -1,17 +1,47 @@
 <div class="page-container">
+  <a routerLink="/deals" class="back-link"
+    ><span aria-hidden="true">←</span> Volver a oportunidades</a
+  >
   <div class="form-card">
     <header class="card-header">
-      <h2>Nueva Oportunidad Comercial</h2>
-      <p class="subtitle">Registra un nuevo trato en el embudo de ventas</p>
+      <p class="eyebrow">TU PRÓXIMO CIERRE</p>
+      <h1>Nueva oportunidad</h1>
+      <p class="subtitle">
+        Todo empieza con una conversación. Registra los detalles de tu próximo trato.
+      </p>
+      <p class="form-hint">Los campos con * son obligatorios.</p>
     </header>
 
     @if (errorMessage()) {
-      <div class="alert alert-error">
+      <div class="alert alert-error" role="alert">
         {{ errorMessage() }}
       </div>
     }
 
-    <form [formRoot]="form" autocomplete="off">
+    @if (loadingPipelines()) {
+      <div class="alert alert-info" role="status">Cargando embudos y etapas…</div>
+    } @else if (pipelineError()) {
+      <div class="alert alert-error" role="alert">
+        <p>{{ pipelineError() }}</p>
+        <button type="button" class="btn btn-outline btn-sm" (click)="loadPipelines()">
+          Reintentar
+        </button>
+      </div>
+    } @else if (!pipelines().length) {
+      <div class="alert alert-info" role="status">
+        <p>No hay embudos de ventas disponibles.</p>
+        <p>Necesitas un embudo activo con al menos una etapa para crear oportunidades.</p>
+        <button type="button" class="btn btn-outline btn-sm" (click)="loadPipelines()">
+          Actualizar embudos
+        </button>
+      </div>
+    } @else if (!availableStages().length) {
+      <div class="alert alert-info" role="status">
+        Este embudo aún no tiene etapas. Selecciona otro o pide a tu administrador que lo configure.
+      </div>
+    }
+
+    <form [formRoot]="form" [attr.aria-busy]="isSubmitting() || loadingPipelines()">
       <!-- Título de la oportunidad -->
       <div class="form-group">
         @let titleField = form.title();
@@ -23,10 +53,12 @@
           id="title"
           [formField]="form.title"
           [class.error]="showTitleError"
+          [attr.aria-invalid]="showTitleError"
+          [attr.aria-describedby]="showTitleError ? 'title-errors' : null"
           placeholder="Ej. Implementación CRM Enterprise"
-        >
+        />
         @if (showTitleError) {
-          <ul class="error-messages">
+          <ul id="title-errors" class="error-messages" aria-live="polite">
             @for (error of titleField.errors(); track error.kind) {
               <li>{{ error.message }}</li>
             }
@@ -47,10 +79,12 @@
             step="0.01"
             [formField]="form.amount"
             [class.error]="showAmountError"
+            [attr.aria-invalid]="showAmountError"
+            [attr.aria-describedby]="showAmountError ? 'amount-errors' : null"
             placeholder="0.00"
-          >
+          />
           @if (showAmountError) {
-            <ul class="error-messages">
+            <ul id="amount-errors" class="error-messages" aria-live="polite">
               @for (error of amountField.errors(); track error.kind) {
                 <li>{{ error.message }}</li>
               }
@@ -73,12 +107,15 @@
         <!-- Embudo -->
         <div class="form-group flex-1">
           <label for="pipeline_id">Embudo de Ventas *</label>
-          <select id="pipeline_id" [formField]="form.pipeline_id" (change)="onPipelineChange($event)">
+          <select
+            id="pipeline_id"
+            [formField]="form.pipeline_id"
+            (change)="onPipelineChange($event)"
+          >
             @for (pipeline of pipelines(); track pipeline.id) {
               <option [value]="pipeline.id">{{ pipeline.name }}</option>
-            } @empty {
-              <option value="a0000000-0000-0000-0000-000000000001">Embudo Principal</option>
             }
+            <option value="" disabled>Selecciona un embudo</option>
           </select>
         </div>
 
@@ -88,9 +125,8 @@
           <select id="stage_id" [formField]="form.stage_id">
             @for (stage of availableStages(); track stage.id) {
               <option [value]="stage.id">{{ stage.name }} ({{ stage.win_probability }}%)</option>
-            } @empty {
-              <option value="b0000000-0000-0000-0000-000000000001">Prospección</option>
             }
+            <option value="" disabled>Selecciona una etapa</option>
           </select>
         </div>
       </div>
@@ -98,18 +134,17 @@
       <!-- Fecha estimada de cierre -->
       <div class="form-group">
         <label for="expected_close_date">Fecha Estimada de Cierre</label>
-        <input
-          type="date"
-          id="expected_close_date"
-          [formField]="form.expected_close_date"
-        >
+        <input type="date" id="expected_close_date" [formField]="form.expected_close_date" />
       </div>
 
       <!-- Botones de Acción -->
       <div class="form-actions">
         <a routerLink="/deals" class="btn btn-outline">Cancelar</a>
-        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
-          {{ isSubmitting() ? 'Guardando trato...' : 'Crear Oportunidad' }}
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting() || !canCreate()">
+          @if (isSubmitting()) {
+            <span class="spinner" aria-hidden="true"></span>
+          }
+          {{ isSubmitting() ? 'Guardando oportunidad…' : 'Crear oportunidad' }}
         </button>
       </div>
     </form>

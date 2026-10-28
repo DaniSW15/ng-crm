@@ -3,9 +3,11 @@ import { Router, RouterLink } from '@angular/router';
 import { email, form, FormField, FormRoot, required } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth-service';
+import { apiErrorMessage } from '../../../../core/utils/api-error-message';
+import { AuthShell } from '../../components/auth-shell/auth-shell';
 
 @Component({
-  imports: [FormRoot, FormField, RouterLink],
+  imports: [FormRoot, FormField, RouterLink, AuthShell],
   selector: 'app-login',
   styleUrl: './login.scss',
   templateUrl: './login.html',
@@ -16,6 +18,7 @@ export class Login {
 
   protected readonly loginError = signal<string | null>(null);
   protected readonly isSubmitting = signal<boolean>(false);
+  protected readonly showPassword = signal(false);
   protected readonly model = signal({ email: '', password: '' });
 
   protected readonly form = form(
@@ -27,25 +30,23 @@ export class Login {
     },
     {
       submission: {
-        action: async (f) => {
+        action: async () => {
           this.loginError.set(null);
           this.isSubmitting.set(true);
 
           try {
             const credentials = this.model();
-            const response = await firstValueFrom(this.authService.login(credentials));
-            console.log('Inicio de sesión exitoso:', response);
+            await firstValueFrom(this.authService.login(credentials));
             await this.router.navigate(['/deals']);
-          } catch (error: any) {
-            console.error('Error al iniciar sesión:', error);
+          } catch (error: unknown) {
             this.loginError.set(
-              error.error?.detail || 'Credenciales inválidas. Verifica tu correo y contraseña.'
+              apiErrorMessage(error, 'No pudimos iniciar sesión. Verifica tu correo y contraseña.'),
             );
           } finally {
             this.isSubmitting.set(false);
           }
         },
       },
-    }
+    },
   );
 }

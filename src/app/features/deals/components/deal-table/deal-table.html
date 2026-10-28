@@ -1,66 +1,90 @@
 <div class="table-card">
-  <table>
-    <thead>
-      <tr>
-        <th>Título</th>
-        <th>Monto</th>
-        <th>Etapa</th>
-        <th>Estado</th>
-        <th>Cierre Estimado</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (deal of deals(); track deal.id) {
-      <tr>
-        <td class="font-medium">{{ deal.title }}</td>
-        <td>{{ deal.amount | currency:deal.currency:'symbol':'1.2-2' }}</td>
-        <td>
-          <span class="stage-pill">
-            {{ stageNames().get(deal.stage_id) || 'En proceso' }}
-          </span>
-        </td>
-        <td>
-          <span class="badge" [class]="'badge-' + deal.status.toLowerCase()">
-            {{ deal.status }}
-          </span>
-        </td>
-        <td>{{ deal.expected_close_date ? (deal.expected_close_date | date:'dd/MM/yyyy') : 'N/A' }}</td>
-        <td>
-          <div class="actions-cell">
-            <button
-              class="btn btn-sm btn-outline"
-              (click)="moveToNext.emit(deal)"
-              title="Avanzar a la siguiente etapa"
-            >
-              Avanzar
-            </button>
-
-            <!-- Permiso declarativo con directiva estructural -->
-            <button
-              *hasPermission="'deals:delete'; else noDelete"
-              class="btn btn-sm btn-danger"
-              (click)="delete.emit(deal)"
-              title="Eliminar oportunidad"
-            >
-              Eliminar
-            </button>
-            <ng-template #noDelete>
-              <span class="badge badge-muted" title="Tu rol (CLIENTE) solo tiene permisos de consulta y edición">
-                Sin permiso
+  <div
+    class="table-scroll"
+    role="region"
+    aria-label="Tabla de oportunidades. Desplázate horizontalmente para ver todas las columnas."
+    tabindex="0"
+  >
+    <table>
+      <caption class="sr-only">
+        Oportunidades comerciales y acciones disponibles
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Oportunidad</th>
+          <th scope="col">Monto</th>
+          <th scope="col">Etapa</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Cierre estimado</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (deal of deals(); track deal.id) {
+          <tr [attr.aria-busy]="pendingIds().has(deal.id)">
+            <td class="font-medium">{{ deal.title }}</td>
+            <td class="amount-cell">
+              {{ deal.amount | currency: deal.currency : 'code' : '1.2-2' }}
+            </td>
+            <td>
+              <span class="stage-pill">
+                {{ stageNames().get(deal.stage_id) || 'Etapa no disponible' }}
               </span>
-            </ng-template>
-          </div>
-        </td>
-      </tr>
-      } @empty {
-      <tr>
-        <td colspan="6" class="empty-state">
-          No hay oportunidades comerciales registradas en este momento.
-        </td>
-      </tr>
-      }
-    </tbody>
-  </table>
-</div>
+            </td>
+            <td>
+              <span class="badge" [class]="'badge-' + deal.status.toLowerCase()">
+                {{ statusLabels[deal.status] }}
+              </span>
+            </td>
+            <td>
+              {{
+                deal.expected_close_date
+                  ? (deal.expected_close_date | date: 'dd/MM/yyyy')
+                  : 'Sin fecha'
+              }}
+            </td>
+            <td>
+              <div class="actions-cell">
+                <button
+                  *hasPermission="'deals:move_stage'"
+                  type="button"
+                  class="btn btn-sm btn-outline"
+                  (click)="moveToNext.emit(deal)"
+                  title="Avanzar a la siguiente etapa"
+                  [attr.aria-label]="'Avanzar oportunidad: ' + deal.title"
+                  [disabled]="pendingIds().has(deal.id) || !nextStages().has(deal.id)"
+                >
+                  Avanzar
+                </button>
 
+                <!-- Permiso declarativo con directiva estructural -->
+                <button
+                  *hasPermission="'deals:delete'; else noDelete"
+                  type="button"
+                  class="btn btn-sm btn-danger"
+                  (click)="delete.emit(deal)"
+                  title="Eliminar oportunidad"
+                  [attr.aria-label]="'Eliminar oportunidad: ' + deal.title"
+                  [disabled]="pendingIds().has(deal.id)"
+                >
+                  Eliminar
+                </button>
+                <ng-template #noDelete>
+                  <span class="badge badge-muted" title="Tu rol no permite eliminar oportunidades">
+                    Sin permiso para eliminar
+                  </span>
+                </ng-template>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty-state">
+              No hay oportunidades comerciales registradas en este momento.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
