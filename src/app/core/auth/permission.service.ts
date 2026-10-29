@@ -1,7 +1,7 @@
 import { computed, inject, Service, Signal } from '@angular/core';
 import { AuthService } from './auth-service';
-import { AppPermission, ROLE_PERMISSIONS } from '../models/permission.model';
-import { UserRole } from '../models/auth.model';
+import { AppPermission, ROLE_PERMISSIONS } from '@core/models/permission.model';
+import { UserRole } from '@core/models/auth.model';
 
 @Service()
 export class PermissionService {

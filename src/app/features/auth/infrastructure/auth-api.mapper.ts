@@ -1,4 +1,4 @@
-import type { AuthenticatedSession } from '../domain/authenticated-session';
+import type { AuthenticatedSession } from '@features/auth/domain/authenticated-session';
 
 /** Respuesta documentada de /auth/login y /auth/register-tenant. */
 export interface AuthApiResponse {

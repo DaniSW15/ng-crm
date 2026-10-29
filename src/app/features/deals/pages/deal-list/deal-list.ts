@@ -1,14 +1,14 @@
 import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DealService } from '../../services/deal.service';
-import { Deal, Pipeline } from '../../../../core/models/deal.model';
-import { PermissionService } from '../../../../core/auth/permission.service';
-import { HasPermissionDirective } from '../../../../core/directives/has-permission.directive';
-import { DealTable } from '../../components/deal-table/deal-table';
+import { DealService } from '@features/deals/services/deal.service';
+import { Deal, Pipeline } from '@core/models/deal.model';
+import { PermissionService } from '@core/auth/permission.service';
+import { HasPermissionDirective } from '@core/directives/has-permission.directive';
+import { DealTable } from '@features/deals/components/deal-table/deal-table';
 import { finalize } from 'rxjs';
-import { apiErrorMessage } from '../../../../core/utils/api-error-message';
-import { findNextDealStage } from '../../domain/deal-stage.policy';
-import { ADVANCE_DEAL_USE_CASE } from '../../deals.providers';
+import { apiErrorMessage } from '@core/utils/api-error-message';
+import { findNextDealStage } from '@features/deals/domain/deal-stage.policy';
+import { ADVANCE_DEAL_USE_CASE } from '@features/deals/deals.providers';
 import { dealToViewModel } from './deal-view-model.mapper';
 
 @Component({

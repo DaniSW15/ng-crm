@@ -2,10 +2,10 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { form, FormField, FormRoot, min, required } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
-import { DealService } from '../../services/deal.service';
-import { AuthService } from '../../../../core/auth/auth-service';
-import { DealCreateRequest, Pipeline } from '../../../../core/models/deal.model';
-import { apiErrorMessage } from '../../../../core/utils/api-error-message';
+import { DealService } from '@features/deals/services/deal.service';
+import { AuthService } from '@core/auth/auth-service';
+import { DealCreateRequest, Pipeline } from '@core/models/deal.model';
+import { apiErrorMessage } from '@core/utils/api-error-message';
 
 export interface DealFormModel {
   title: string;

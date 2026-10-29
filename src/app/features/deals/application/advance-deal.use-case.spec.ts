@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Deal } from '../domain/deal';
+import type { Deal } from '@features/deals/domain/deal';
 import { AdvanceDealUseCase, type AdvanceDealCommand } from './advance-deal.use-case';
 import type { DealStageRepository } from './deal-stage.repository';
 

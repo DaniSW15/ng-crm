@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Login } from './login';
 import { provideRouter } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { LOGIN_USE_CASE } from '../../auth.providers';
+import { LOGIN_USE_CASE } from '@features/auth/auth.providers';
 
 describe('Login', () => {
   let component: Login;

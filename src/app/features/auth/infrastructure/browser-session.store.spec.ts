@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import type { AuthenticatedSession } from '../domain/authenticated-session';
+import type { AuthenticatedSession } from '@features/auth/domain/authenticated-session';
 import { BrowserSessionStore } from './browser-session.store';
 
 describe('BrowserSessionStore', () => {

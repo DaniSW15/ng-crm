@@ -4,9 +4,9 @@ import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
-import { AuthService } from '../../../../core/auth/auth-service';
-import { DealService } from '../../services/deal.service';
-import { Pipeline, Stage } from '../../../../core/models/deal.model';
+import { AuthService } from '@core/auth/auth-service';
+import { DealService } from '@features/deals/services/deal.service';
+import { Pipeline, Stage } from '@core/models/deal.model';
 
 describe('DealCreate', () => {
   let component: DealCreate;

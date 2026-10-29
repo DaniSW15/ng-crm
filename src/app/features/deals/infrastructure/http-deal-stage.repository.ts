@@ -1,8 +1,8 @@
 import { inject, Service } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { DealStageRepository } from '../application/deal-stage.repository';
-import type { Deal } from '../domain/deal';
-import { DealService } from '../services/deal.service';
+import type { DealStageRepository } from '@features/deals/application/deal-stage.repository';
+import type { Deal } from '@features/deals/domain/deal';
+import { DealService } from '@features/deals/services/deal.service';
 import { dealFromApi } from './deal-api.mapper';
 
 /** Implementa el contrato de aplicación reutilizando el cliente HTTP del proyecto. */

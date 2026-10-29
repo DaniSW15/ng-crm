@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { PermissionService } from './permission.service';
-import { AppPermission } from '../models/permission.model';
+import { AppPermission } from '@core/models/permission.model';
 
 /**
  * Functional Route Guard para proteger rutas basándose en permisos atómicos de dominio.

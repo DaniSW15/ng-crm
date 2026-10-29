@@ -10,10 +10,10 @@ import {
   required,
 } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
-import { AuthService } from '../../../../core/auth/auth-service';
-import { RegisterRequest } from '../../../../core/models/auth.model';
-import { apiErrorMessage } from '../../../../core/utils/api-error-message';
-import { AuthShell } from '../../components/auth-shell/auth-shell';
+import { AuthService } from '@core/auth/auth-service';
+import { RegisterRequest } from '@core/models/auth.model';
+import { apiErrorMessage } from '@core/utils/api-error-message';
+import { AuthShell } from '@features/auth/components/auth-shell/auth-shell';
 
 @Component({
   imports: [FormRoot, FormField, RouterLink, AuthShell],

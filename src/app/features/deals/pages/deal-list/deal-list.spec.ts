@@ -3,9 +3,9 @@ import { DealList } from './deal-list';
 import { provideRouter } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, Subject, throwError } from 'rxjs';
-import { DealService } from '../../services/deal.service';
-import { PermissionService } from '../../../../core/auth/permission.service';
-import { Deal, Pipeline, Stage } from '../../../../core/models/deal.model';
+import { DealService } from '@features/deals/services/deal.service';
+import { PermissionService } from '@core/auth/permission.service';
+import { Deal, Pipeline, Stage } from '@core/models/deal.model';
 
 describe('DealList', () => {
   let component: DealList;

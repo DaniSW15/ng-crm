@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { environment } from '../../../environments/environment';
-import { BrowserSessionStore } from '../../features/auth/infrastructure/browser-session.store';
+import { environment } from '@environments/environment';
+import { BrowserSessionStore } from '@features/auth/infrastructure/browser-session.store';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = inject(BrowserSessionStore).getToken();

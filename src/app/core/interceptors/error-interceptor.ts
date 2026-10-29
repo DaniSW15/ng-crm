@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { BrowserSessionStore } from '../../features/auth/infrastructure/browser-session.store';
+import { BrowserSessionStore } from '@features/auth/infrastructure/browser-session.store';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(BrowserSessionStore);

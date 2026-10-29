@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/auth/auth-guard';
+import { authGuard, guestGuard } from '@core/auth/auth-guard';
 
 export const routes: Routes = [
   // Rutas públicas (Autenticación)
@@ -7,7 +7,7 @@ export const routes: Routes = [
     path: 'auth',
     canActivate: [guestGuard],
     loadChildren: () =>
-      import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
+      import('@features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
 
   // Rutas protegidas (CRM)
@@ -15,14 +15,14 @@ export const routes: Routes = [
     path: '',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./layout/components/main-layout.component/main-layout.component').then(
+      import('@app/layout/components/main-layout.component/main-layout.component').then(
         m => m.MainLayoutComponent
       ),
     children: [
       {
         path: 'deals',
         loadChildren: () =>
-          import('./features/deals/deals.routes').then(m => m.DEAL_ROUTES)
+          import('@features/deals/deals.routes').then(m => m.DEAL_ROUTES)
       },
       {
         path: '',

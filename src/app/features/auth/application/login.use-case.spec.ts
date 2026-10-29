@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AuthenticatedSession } from '../domain/authenticated-session';
-import { InvalidLoginCredentialsError } from '../domain/login-credentials';
+import type { AuthenticatedSession } from '@features/auth/domain/authenticated-session';
+import { InvalidLoginCredentialsError } from '@features/auth/domain/login-credentials';
 import type { AuthRepository } from './auth.repository';
 import type { SessionStore } from './session.store';
 import { LoginUseCase } from './login.use-case';

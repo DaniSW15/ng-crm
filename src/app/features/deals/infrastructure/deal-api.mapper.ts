@@ -1,4 +1,4 @@
-import type { Deal } from '../domain/deal';
+import type { Deal } from '@features/deals/domain/deal';
 
 /** Formato de respuesta del backend; queda fuera del dominio y del caso de uso. */
 export interface DealApiResponse {

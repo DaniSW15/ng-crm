@@ -3,12 +3,12 @@ import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { authInterceptor } from '../interceptors/auth-interceptor';
-import { errorInterceptor } from '../interceptors/error-interceptor';
-import { BrowserSessionStore } from '../../features/auth/infrastructure/browser-session.store';
-import type { AuthenticatedSession } from '../../features/auth/domain/authenticated-session';
-import type { UserProfileResponse } from '../models/auth.model';
+import { environment } from '@environments/environment';
+import { authInterceptor } from '@core/interceptors/auth-interceptor';
+import { errorInterceptor } from '@core/interceptors/error-interceptor';
+import { BrowserSessionStore } from '@features/auth/infrastructure/browser-session.store';
+import type { AuthenticatedSession } from '@features/auth/domain/authenticated-session';
+import type { UserProfileResponse } from '@core/models/auth.model';
 import { AuthService } from './auth-service';
 import { PermissionService } from './permission.service';
 

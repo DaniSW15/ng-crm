@@ -6,8 +6,8 @@ import {
   TemplateRef,
   ViewContainerRef,
 } from '@angular/core';
-import { PermissionService } from '../auth/permission.service';
-import { AppPermission } from '../models/permission.model';
+import { PermissionService } from '@core/auth/permission.service';
+import { AppPermission } from '@core/models/permission.model';
 
 /**
  * Directiva Estructural declarativa para control de acceso en plantillas.

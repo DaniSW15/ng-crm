@@ -2,10 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { environment } from '../../../../../environments/environment';
-import { authInterceptor } from '../../../../core/interceptors/auth-interceptor';
-import { errorInterceptor } from '../../../../core/interceptors/error-interceptor';
-import { BrowserSessionStore } from '../../infrastructure/browser-session.store';
+import { environment } from '@environments/environment';
+import { authInterceptor } from '@core/interceptors/auth-interceptor';
+import { errorInterceptor } from '@core/interceptors/error-interceptor';
+import { BrowserSessionStore } from '@features/auth/infrastructure/browser-session.store';
 import { Login } from './login';
 
 describe('Login: formulario, caso de uso, HTTP y sesión', () => {

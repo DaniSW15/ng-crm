@@ -1,5 +1,5 @@
-import type { AuthenticatedSession } from '../domain/authenticated-session';
-import { createLoginCredentials, type LoginCredentials } from '../domain/login-credentials';
+import type { AuthenticatedSession } from '@features/auth/domain/authenticated-session';
+import { createLoginCredentials, type LoginCredentials } from '@features/auth/domain/login-credentials';
 import type { AuthRepository } from './auth.repository';
 import type { SessionStore } from './session.store';
 

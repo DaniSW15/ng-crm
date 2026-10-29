@@ -1,7 +1,7 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { Deal } from '../../../../core/models/deal.model';
-import { HasPermissionDirective } from '../../../../core/directives/has-permission.directive';
+import { Deal } from '@core/models/deal.model';
+import { HasPermissionDirective } from '@core/directives/has-permission.directive';
 
 /**
  * Presentational (Dumb) Component:

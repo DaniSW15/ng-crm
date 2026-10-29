@@ -1,7 +1,7 @@
 import { computed, DestroyRef, inject, Service, signal } from '@angular/core';
-import type { UserProfileResponse } from '../../../core/models/auth.model';
-import type { SessionStore } from '../application/session.store';
-import type { AuthenticatedSession } from '../domain/authenticated-session';
+import type { UserProfileResponse } from '@core/models/auth.model';
+import type { SessionStore } from '@features/auth/application/session.store';
+import type { AuthenticatedSession } from '@features/auth/domain/authenticated-session';
 
 /** Única autoridad de token y perfil en el navegador. No realiza peticiones HTTP. */
 @Service()

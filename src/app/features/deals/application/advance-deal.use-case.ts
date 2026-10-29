@@ -1,9 +1,9 @@
-import type { Deal } from '../domain/deal';
+import type { Deal } from '@features/deals/domain/deal';
 import {
   type DealStagePosition,
   findNextDealStage,
   type PipelineStages,
-} from '../domain/deal-stage.policy';
+} from '@features/deals/domain/deal-stage.policy';
 import type { DealStageRepository } from './deal-stage.repository';
 
 export interface AdvanceDealCommand extends DealStagePosition {

@@ -1,4 +1,4 @@
-import type { Deal } from '../domain/deal';
+import type { Deal } from '@features/deals/domain/deal';
 
 /** Contrato del caso de uso: guardar un cambio de etapa y devolver la oportunidad actualizada. */
 export interface DealStageRepository {

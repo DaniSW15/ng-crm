@@ -1,10 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { email, form, FormField, FormRoot, required } from '@angular/forms/signals';
-import { apiErrorMessage } from '../../../../core/utils/api-error-message';
-import { AuthShell } from '../../components/auth-shell/auth-shell';
-import { LOGIN_USE_CASE } from '../../auth.providers';
-import { InvalidLoginCredentialsError } from '../../domain/login-credentials';
+import { apiErrorMessage } from '@core/utils/api-error-message';
+import { AuthShell } from '@features/auth/components/auth-shell/auth-shell';
+import { LOGIN_USE_CASE } from '@features/auth/auth.providers';
+import { InvalidLoginCredentialsError } from '@features/auth/domain/login-credentials';
 
 @Component({
   imports: [FormRoot, FormField, RouterLink, AuthShell],

@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MainLayoutComponent } from './main-layout.component';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
-import { AuthService } from '../../../core/auth/auth-service';
+import { AuthService } from '@core/auth/auth-service';
 
 describe('MainLayoutComponent', () => {
   let component: MainLayoutComponent;

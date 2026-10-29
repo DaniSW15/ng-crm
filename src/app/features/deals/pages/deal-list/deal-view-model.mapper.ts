@@ -1,5 +1,5 @@
-import type { Deal as DealViewModel } from '../../../../core/models/deal.model';
-import type { Deal } from '../../domain/deal';
+import type { Deal as DealViewModel } from '@core/models/deal.model';
+import type { Deal } from '@features/deals/domain/deal';
 
 /** Adapta el resultado del caso de uso al formato que utiliza la tabla existente. */
 export function dealToViewModel(deal: Deal): DealViewModel {

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { environment } from '@environments/environment';
 import {
   Deal,
   DealCreateRequest,
@@ -9,7 +9,7 @@ import {
   DealUpdateRequest,
   MoveDealStageRequest,
   Pipeline,
-} from '../../../core/models/deal.model';
+} from '@core/models/deal.model';
 
 @Service()
 export class DealService {

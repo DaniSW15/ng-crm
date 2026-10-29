@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Register } from './register';
 import { provideRouter } from '@angular/router';
-import { AuthService } from '../../../../core/auth/auth-service';
+import { AuthService } from '@core/auth/auth-service';
 
 describe('Register', () => {
   let component: Register;

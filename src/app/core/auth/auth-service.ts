@@ -2,14 +2,14 @@ import { effect, inject, Service } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { defer, map, Observable, tap } from 'rxjs';
-import { AuthResponse, RegisterRequest, UserProfileResponse } from '../models/auth.model';
-import { environment } from '../../../environments/environment';
-import { LOGIN_USE_CASE } from '../../features/auth/auth.providers';
+import { AuthResponse, RegisterRequest, UserProfileResponse } from '@core/models/auth.model';
+import { environment } from '@environments/environment';
+import { LOGIN_USE_CASE } from '@features/auth/auth.providers';
 import {
   authenticatedSessionFromApi,
   authSessionToApi,
-} from '../../features/auth/infrastructure/auth-api.mapper';
-import { BrowserSessionStore } from '../../features/auth/infrastructure/browser-session.store';
+} from '@features/auth/infrastructure/auth-api.mapper';
+import { BrowserSessionStore } from '@features/auth/infrastructure/browser-session.store';
 
 /** Fachada compatible para guards, permisos, registro y perfil durante la migración. */
 @Service()
