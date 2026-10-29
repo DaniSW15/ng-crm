@@ -8,6 +8,8 @@ import { DealTable } from '../../components/deal-table/deal-table';
 import { finalize } from 'rxjs';
 import { apiErrorMessage } from '../../../../core/utils/api-error-message';
 import { findNextDealStage } from '../../domain/deal-stage.policy';
+import { ADVANCE_DEAL_USE_CASE } from '../../deals.providers';
+import { dealToViewModel } from './deal-view-model.mapper';
 
 @Component({
   imports: [RouterLink, HasPermissionDirective, DealTable],
@@ -17,6 +19,7 @@ import { findNextDealStage } from '../../domain/deal-stage.policy';
 })
 export class DealList implements OnInit {
   private readonly dealService = inject(DealService);
+  private readonly advanceDeal = inject(ADVANCE_DEAL_USE_CASE);
   readonly permissionService = inject(PermissionService);
 
   /**
@@ -127,33 +130,37 @@ export class DealList implements OnInit {
     });
   }
 
-  onMoveToNextStage(deal: Deal): void {
+  async onMoveToNextStage(deal: Deal): Promise<void> {
     if (!this.permissionService.hasPermission('deals:move_stage') || this.pendingIds().has(deal.id))
       return;
-    const nextStageId = this.nextStages().get(deal.id);
-    if (!nextStageId) return;
     this.setPending(deal.id, true);
     this.actionMessage.set(null);
-    this.dealService
-      .moveStage(deal.id, nextStageId)
-      .pipe(finalize(() => this.setPending(deal.id, false)))
-      .subscribe({
-        next: (updatedDeal) => {
-          this.deals.update((currentList) =>
-            currentList.map((item) => (item.id === updatedDeal.id ? updatedDeal : item)),
-          );
-          this.actionMessage.set({
-            text: `Se actualizó la etapa de “${updatedDeal.title}”.`,
-            error: false,
-          });
-        },
-        error: (err) => {
-          this.actionMessage.set({
-            text: apiErrorMessage(err, 'No pudimos cambiar la etapa. Intenta nuevamente.'),
-            error: true,
-          });
-        },
+    try {
+      const updatedDeal = await this.advanceDeal.execute({
+        dealId: deal.id,
+        pipelineId: deal.pipeline_id,
+        stageId: deal.stage_id,
+        status: deal.status,
+        pipeline: this.pipelines().find((pipeline) => pipeline.id === deal.pipeline_id),
       });
+      if (!updatedDeal) return;
+
+      const viewModel = dealToViewModel(updatedDeal);
+      this.deals.update((currentList) =>
+        currentList.map((item) => (item.id === viewModel.id ? viewModel : item)),
+      );
+      this.actionMessage.set({
+        text: `Se actualizó la etapa de “${updatedDeal.title}”.`,
+        error: false,
+      });
+    } catch (error: unknown) {
+      this.actionMessage.set({
+        text: apiErrorMessage(error, 'No pudimos cambiar la etapa. Intenta nuevamente.'),
+        error: true,
+      });
+    } finally {
+      this.setPending(deal.id, false);
+    }
   }
 
   onDeleteDeal(deal: Deal): void {

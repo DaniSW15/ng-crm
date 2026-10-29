@@ -1,10 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { email, form, FormField, FormRoot, required } from '@angular/forms/signals';
-import { firstValueFrom } from 'rxjs';
-import { AuthService } from '../../../../core/auth/auth-service';
 import { apiErrorMessage } from '../../../../core/utils/api-error-message';
 import { AuthShell } from '../../components/auth-shell/auth-shell';
+import { LOGIN_USE_CASE } from '../../auth.providers';
+import { InvalidLoginCredentialsError } from '../../domain/login-credentials';
 
 @Component({
   imports: [FormRoot, FormField, RouterLink, AuthShell],
@@ -13,7 +13,7 @@ import { AuthShell } from '../../components/auth-shell/auth-shell';
   templateUrl: './login.html',
 })
 export class Login {
-  private readonly authService = inject(AuthService);
+  private readonly loginUseCase = inject(LOGIN_USE_CASE);
   private readonly router = inject(Router);
 
   protected readonly loginError = signal<string | null>(null);
@@ -36,11 +36,16 @@ export class Login {
 
           try {
             const credentials = this.model();
-            await firstValueFrom(this.authService.login(credentials));
+            await this.loginUseCase.execute(credentials);
             await this.router.navigate(['/deals']);
           } catch (error: unknown) {
             this.loginError.set(
-              apiErrorMessage(error, 'No pudimos iniciar sesión. Verifica tu correo y contraseña.'),
+              error instanceof InvalidLoginCredentialsError
+                ? error.message
+                : apiErrorMessage(
+                    error,
+                    'No pudimos iniciar sesión. Verifica tu correo y contraseña.',
+                  ),
             );
           } finally {
             this.isSubmitting.set(false);

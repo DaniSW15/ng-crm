@@ -31,7 +31,7 @@ export interface Deal {
   id: string;
   tenant_id: string;
   title: string;
-  amount: number;
+  amount: string | number;
   currency: string;
   pipeline_id: string;
   stage_id: string;
@@ -72,4 +72,3 @@ export interface DealUpdateRequest {
   status?: DealStatus;
   lost_reason?: string | null;
 }
-

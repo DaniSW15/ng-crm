@@ -2,19 +2,18 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Login } from './login';
 import { provideRouter } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { throwError } from 'rxjs';
-import { AuthService } from '../../../../core/auth/auth-service';
+import { LOGIN_USE_CASE } from '../../auth.providers';
 
 describe('Login', () => {
   let component: Login;
   let fixture: ComponentFixture<Login>;
-  const login = vi.fn();
+  const execute = vi.fn();
 
   beforeEach(async () => {
-    login.mockReset();
+    execute.mockReset();
     await TestBed.configureTestingModule({
       imports: [Login],
-      providers: [provideRouter([]), { provide: AuthService, useValue: { login } }],
+      providers: [provideRouter([]), { provide: LOGIN_USE_CASE, useValue: { execute } }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Login);
@@ -30,7 +29,7 @@ describe('Login', () => {
     fixture.nativeElement.querySelector('.password-toggle').click();
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('#password').type).toBe('text');
-    expect(login).not.toHaveBeenCalled();
+    expect(execute).not.toHaveBeenCalled();
     fixture.nativeElement.querySelector('.password-toggle').click();
     await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('#password').type).toBe('password');
@@ -41,12 +40,12 @@ describe('Login', () => {
       .querySelector('form')
       .dispatchEvent(new Event('submit', { cancelable: true }));
     await fixture.whenStable();
-    expect(login).not.toHaveBeenCalled();
+    expect(execute).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).toContain('El correo electrónico es obligatorio');
   });
 
   it('distingue un fallo de conexión de credenciales inválidas', async () => {
-    login.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
+    execute.mockRejectedValue(new HttpErrorResponse({ status: 0 }));
     for (const [id, value] of [
       ['email', 'equipo@acme.com'],
       ['password', 'password123'],
@@ -60,7 +59,7 @@ describe('Login', () => {
       .querySelector('form')
       .dispatchEvent(new Event('submit', { cancelable: true }));
     await fixture.whenStable();
-    expect(login).toHaveBeenCalledWith({ email: 'equipo@acme.com', password: 'password123' });
+    expect(execute).toHaveBeenCalledWith({ email: 'equipo@acme.com', password: 'password123' });
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
       'No pudimos conectar',
     );

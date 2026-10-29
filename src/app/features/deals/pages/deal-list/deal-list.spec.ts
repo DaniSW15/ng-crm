@@ -13,6 +13,7 @@ describe('DealList', () => {
   const getDeals = vi.fn();
   const getPipelines = vi.fn();
   const moveStage = vi.fn();
+  const hasPermission = vi.fn();
   const deal: Deal = {
     id: 'deal',
     tenant_id: 'tenant',
@@ -29,12 +30,13 @@ describe('DealList', () => {
     getDeals.mockReset().mockReturnValue(of([]));
     getPipelines.mockReset().mockReturnValue(of([]));
     moveStage.mockReset();
+    hasPermission.mockReset().mockReturnValue(true);
     await TestBed.configureTestingModule({
       imports: [DealList],
       providers: [
         provideRouter([]),
         { provide: DealService, useValue: { getDeals, getPipelines, moveStage } },
-        { provide: PermissionService, useValue: { hasPermission: () => true } },
+        { provide: PermissionService, useValue: { hasPermission } },
       ],
     }).compileComponents();
 
@@ -77,7 +79,7 @@ describe('DealList', () => {
     expect(fixture.nativeElement.textContent).toContain('No encontramos coincidencias');
   });
 
-  it('avanza por orden aunque existan saltos y evita envíos duplicados', () => {
+  it('avanza por orden aunque existan saltos y evita envíos duplicados', async () => {
     component.deals.set([deal]);
     component.pipelines.set([
       {
@@ -90,11 +92,59 @@ describe('DealList', () => {
     ]);
     const pending = new Subject<Deal>();
     moveStage.mockReturnValue(pending);
-    component.onMoveToNextStage(deal);
-    component.onMoveToNextStage(deal);
+    const moving = component.onMoveToNextStage(deal);
+    await component.onMoveToNextStage(deal);
     expect(moveStage).toHaveBeenCalledExactlyOnceWith('deal', 'second');
     pending.error(new HttpErrorResponse({ status: 503 }));
+    await moving;
     expect(component.pendingIds().size).toBe(0);
     expect(component.actionMessage()?.error).toBe(true);
+  });
+
+  it('muestra la respuesta completa del servidor y libera el estado de envío', async () => {
+    component.deals.set([deal]);
+    component.pipelines.set([
+      {
+        id: 'pipeline',
+        stages: [
+          { id: 'first', order: 1 },
+          { id: 'second', order: 5 },
+        ] as Stage[],
+      } as Pipeline,
+    ]);
+    moveStage.mockReturnValue(
+      of({
+        ...deal,
+        title: 'Título confirmado por el servidor',
+        amount: '15000.00',
+        stage_id: 'second',
+        status: 'WON',
+        actual_close_date: '2026-12-20',
+        custom_fields: { origen: 'referido' },
+      }),
+    );
+
+    await component.onMoveToNextStage(deal);
+    await fixture.whenStable();
+    expect(component.pendingIds().size).toBe(0);
+    expect(component.deals()[0]).toMatchObject({
+      title: 'Título confirmado por el servidor',
+      amount: '15000.00',
+      stage_id: 'second',
+      status: 'WON',
+      actual_close_date: '2026-12-20',
+      custom_fields: { origen: 'referido' },
+    });
+    expect(component.actionMessage()?.error).toBe(false);
+    expect(fixture.nativeElement.querySelector('table').textContent).toContain(
+      'Título confirmado por el servidor',
+    );
+  });
+
+  it('no guarda movimientos cuando el usuario no tiene permiso', async () => {
+    hasPermission.mockReturnValue(false);
+    await component.onMoveToNextStage(deal);
+    expect(moveStage).not.toHaveBeenCalled();
+    expect(component.pendingIds().size).toBe(0);
   });
 });

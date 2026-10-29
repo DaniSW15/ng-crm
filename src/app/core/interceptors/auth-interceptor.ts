@@ -1,9 +1,10 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
+import { BrowserSessionStore } from '../../features/auth/infrastructure/browser-session.store';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // Leer token directamente de storage para evitar dependencias circulares con DI
-  const token = localStorage.getItem('access_token');
+  const token = inject(BrowserSessionStore).getToken();
 
   // Adjuntar el token si es para nuestra API y no es una ruta pública de autenticación
   const isApiUrl = req.url.startsWith(environment.apiUrl) || req.url.includes('/api/v1');

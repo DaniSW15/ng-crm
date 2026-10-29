@@ -1,6 +1,6 @@
 # NgCrm
 
-Para explorar una regla de negocio independiente de Angular, consulta la [demostración de DDD](docs/ddd-demo.md) y ejecuta `npm run test:domain`.
+Para aprender la separación de dominio, aplicación, infraestructura y presentación en este CRM, sigue las guías de [Avanzar oportunidad](docs/ddd-demo.md) e [Iniciar sesión](docs/ddd-login.md). Incluyen los casos de uso, contratos, adaptadores y ejercicios que puedes ejecutar con `npm run test:domain` y `npm run test:application`. Son ejemplos de aprendizaje para estas dos acciones; el resto del CRM puede evolucionar gradualmente.
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.5.
 

@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:domain": "vitest run src/app/features/deals/domain --environment=node"
+    "test:domain": "vitest run src/app/features/deals/domain src/app/features/auth/domain --environment=node",
+    "test:application": "vitest run src/app/features/deals/application src/app/features/auth/application --environment=node"
   },
   "private": true,
   "packageManager": "npm@11.13.0",
